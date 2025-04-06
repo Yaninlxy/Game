@@ -1,28 +1,54 @@
-num1 =input("Введи первое число: ")
-num2 =input("Введи второе число: ")
-operation = input ("Какое действие сделать? (+ или -, (* или/): ")
+while True:
+    print("\nКалькулятор (введи 'выход' чтобы завершить)")
 
-num1 = float(num1)
-num2 = float(num2)
+    num1 = input("Введи первое число: ")
+    if num1.lower() == "выход":
+        break
 
-if operation == "+":
-    result = num1 + num2
-    print(f"{num1} + {num2} = {result}")
-    
-elif operation == "-":
-    result = num1 - num2
-    print(f"{num1} - {num2} = {result}")
+    num2 = input("Введи второе число: ")
+    if num2.lower() == "выход":
+        break
 
-elif operation == "*":
-    result = num1 * num2
-    print(f"{num1} * {num2} = {result}")
-    
-elif operation == "/":
-    if num2 == 0:
-        print("На ноль делить нельзя!")
+    operation = input("Какое действие сделать? (+, -, *, /, **, %): ")
+    if operation.lower() == "выход":
+        break
+
+    try:
+        num1 = float(num1)
+        num2 = float(num2)
+    except ValueError:
+        print("Ошибка: нужно вводить числа!")
+        continue
+
+    if operation == "+":
+        result = num1 + num2
+        print(f"{num1} + {num2} = {result}")
+
+    elif operation == "-":
+        result = num1 - num2
+        print(f"{num1} - {num2} = {result}")
+
+    elif operation == "*":
+        result = num1 * num2
+        print(f"{num1} * {num2} = {result}")
+
+    elif operation == "/":
+        if num2 == 0:
+            print("На ноль делить нельзя!")
+        else:
+            result = num1 / num2
+            print(f"{num1} / {num2} = {result}")
+
+    elif operation == "**":
+        result = num1 ** num2
+        print(f"{num1} ** {num2} = {result}")
+
+    elif operation == "%":
+        if num2 == 0:
+            print("На ноль делить нельзя!")
+        else:
+            result = num1 % num2
+            print(f"{num1} % {num2} = {result}")
+
     else:
-        result = num1 / num2
-        print(f"{num1} / {num2} = {result}")
-    
-else:
-    print("Я пока умею только складывать, вычитать, умножать и делить!")
+        print("Неизвестная операция. Доступны: +, -, *, /, **, %")
