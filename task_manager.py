@@ -1,8 +1,9 @@
 import os
 import json
 import logging
+import configparser
 from datetime import datetime, timedelta
-from configparser import ConfigParser
+
 try:
     from colorama import init, Fore, Style
     init()
@@ -19,13 +20,11 @@ FILENAME = "todo.txt"
 ARCHIVE_FILENAME = "archive.txt"
 
 def load_config():
-    """Загружает конфигурацию из config.ini."""
-    config = ConfigParser()
-    config["DEFAULT"] = {}  # Пустой раздел по умолчанию
+    config = configparser.ConfigParser(interpolation=None)  # Отключаем интерполяцию
+    config.read('config.ini')
     config.set("DEFAULT", "date_format", "%Y-%m-%d")  # Устанавливаем через set()
-    if os.path.exists(CONFIG_FILE):
-        config.read(CONFIG_FILE, encoding="utf-8")
     return config
+    
 
 CONFIG = load_config()
 DATE_FORMAT = CONFIG["DEFAULT"]["date_format"]
