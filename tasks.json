@@ -1,0 +1,22 @@
+[
+  {
+    "done": false,
+    "category": "Без категории",
+    "text": "1",
+    "priority": "средний",
+    "deadline": "",
+    "tags": [],
+    "repeat": "",
+    "subtasks": []
+  },
+  {
+    "done": false,
+    "category": "личное",
+    "text": "Купить хлеб",
+    "priority": "средний",
+    "deadline": "2025-04-08",
+    "tags": [],
+    "repeat": "",
+    "subtasks": []
+  }
+]
