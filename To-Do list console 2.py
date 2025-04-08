@@ -9,8 +9,13 @@ def load_tasks():
         with open(FILENAME, "r", encoding="utf-8") as f:
             for line in f:
                 try:
-                    status, category, text = line.strip().split("|", 2)
-                    tasks.append({"done": status == "1", "category": category, "text": text})
+                    status, category, text, priority = line.strip().split("|", 3)
+                    tasks.append({
+                        "done": status == "1",
+                        "category": category,
+                        "text": text,
+                        "priority": priority
+                    })
                 except ValueError:
                     print(f"Пропущена строка: {line.strip()}")
     return tasks
@@ -20,7 +25,7 @@ def save_tasks(tasks):
     with open(FILENAME, "w", encoding="utf-8") as f:
         for task in tasks:
             status = "1" if task["done"] else "0"
-            f.write(f"{status}|{task['category']}|{task['text']}\n")
+            f.write(f"{status}|{task['category']}|{task['text']}|{task['priority']}\n")
 
 # Показываем задачи
 def show_tasks(tasks, category=None):
@@ -30,11 +35,15 @@ def show_tasks(tasks, category=None):
         return
     
     print(f"\nТекущие задачи{' (' + category + ')' if category else ''}:")
-    # Сортируем: невыполненные наверх
-    sorted_tasks = sorted(filtered_tasks, key=lambda x: x["done"])
+    # Сортировка: сначала приоритет (высокий → низкий), затем done
+    priority_order = {"высокий": 1, "средний": 2, "низкий": 3}
+    sorted_tasks = sorted(
+        filtered_tasks,
+        key=lambda x: (priority_order.get(x["priority"], 3), x["done"])
+    )
     for i, task in enumerate(sorted_tasks, 1):
         mark = "[x]" if task["done"] else "[ ]"
-        print(f"{i}. {mark} {task['text']} ({task['category']})")
+        print(f"{i}. {mark} {task['text']} ({task['category']}, {task['priority']})")
 
 # Получаем номер задачи с проверкой
 def get_task_number(tasks, prompt):
@@ -49,6 +58,14 @@ def get_task_number(tasks, prompt):
         print("Нужно ввести число.")
         return None
 
+# Проверяем приоритет
+def get_priority():
+    priority = input("Приоритет (высокий/средний/низкий): ").strip().lower()
+    if priority not in ["высокий", "средний", "низкий"]:
+        print("Неверный приоритет, установлен 'средний'.")
+        return "средний"
+    return priority
+
 # Добавляем задачу
 def add_task(tasks):
     text = input("Введи задачу: ").strip()
@@ -59,7 +76,8 @@ def add_task(tasks):
         print("Ошибка: такая задача уже есть!")
         return
     category = input("Категория (Работа/Личное/другое): ").strip() or "Без категории"
-    tasks.append({"done": False, "category": category, "text": text})
+    priority = get_priority()
+    tasks.append({"done": False, "category": category, "text": text, "priority": priority})
     save_tasks(tasks)
     print("Задача добавлена!")
 
@@ -90,10 +108,12 @@ def edit_task(tasks):
         if any(task["text"] == new_text for task in tasks if task != tasks[num]):
             print("Ошибка: такая задача уже есть!")
             return
-        new_category = input("Новая категория (Enter для той же): ").strip()
+        new_category = input("Новая категория (Enter для той же): ").strip() or tasks[num]["category"]
+        new_priority = input("Новый приоритет (Enter для того же): ").strip().lower()
+        new_priority = get_priority() if new_priority else tasks[num]["priority"]
         tasks[num]["text"] = new_text
-        if new_category:
-            tasks[num]["category"] = new_category
+        tasks[num]["category"] = new_category
+        tasks[num]["priority"] = new_priority
         save_tasks(tasks)
         print("Задача обновлена!")
 
@@ -101,6 +121,16 @@ def edit_task(tasks):
 def show_by_category(tasks):
     category = input("Введи категорию (или Enter для всех): ").strip()
     show_tasks(tasks, category or None)
+
+# Показываем статистику
+def show_stats(tasks):
+    total = len(tasks)
+    done = sum(1 for task in tasks if task["done"])
+    remaining = total - done
+    print(f"\nСтатистика задач:")
+    print(f"Всего задач: {total}")
+    print(f"Выполнено: {done}")
+    print(f"Осталось: {remaining}")
 
 # Основной цикл
 def main():
@@ -114,7 +144,8 @@ def main():
         print("4. Отметить как выполненную")
         print("5. Удалить задачу")
         print("6. Редактировать задачу")
-        print("7. Выйти")
+        print("7. Показать статистику")
+        print("8. Выйти")
         
         choice = input("Твой выбор: ").strip()
         
@@ -131,6 +162,8 @@ def main():
         elif choice == "6":
             edit_task(tasks)
         elif choice == "7":
+            show_stats(tasks)
+        elif choice == "8":
             print("Пока!")
             break
         else:

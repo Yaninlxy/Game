@@ -1,0 +1,17 @@
+<!-- templates/edit.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Редактировать задачу</title>
+</head>
+<body>
+    <h1>Редактировать задачу</h1>
+    
+    <form method="POST">
+        <input type="text" name="task" value="{{ task[1] }}" required>
+        <button type="submit">Сохранить изменения</button>
+    </form>
+
+    <a href="/todo">Назад к задачам</a>
+</body>
+</html>
