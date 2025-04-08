@@ -1,9 +1,8 @@
 import os
 import json
 import logging
-import configparser
 from datetime import datetime, timedelta
-
+import configparser
 try:
     from colorama import init, Fore, Style
     init()
@@ -20,11 +19,11 @@ FILENAME = "todo.txt"
 ARCHIVE_FILENAME = "archive.txt"
 
 def load_config():
+    """Загружает конфигурацию из config.ini."""
     config = configparser.ConfigParser(interpolation=None)  # Отключаем интерполяцию
-    config.read('config.ini')
+    config.read(CONFIG_FILE)  # Читаем файл, если он есть
     config.set("DEFAULT", "date_format", "%Y-%m-%d")  # Устанавливаем через set()
     return config
-    
 
 CONFIG = load_config()
 DATE_FORMAT = CONFIG["DEFAULT"]["date_format"]
@@ -473,6 +472,49 @@ class TaskManager:
             logging.error(f"Ошибка импорта JSON: {str(e)}")
             print("Ошибка при импорте задач.")
 
+    def export_to_ics(self):
+        """Экспортирует задачи с дедлайнами в iCalendar (.ics) файл."""
+        ics_content = [
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//LegendaryTaskManager//Grok3//EN",
+            "CALSCALE:GREGORIAN"
+        ]
+        
+        for task in self.tasks:
+            if task["deadline"]:  # Экспортируем только задачи с дедлайнами
+                try:
+                    deadline = datetime.strptime(task["deadline"], DATE_FORMAT)
+                    uid = f"{task['text'].replace(' ', '_')}_{deadline.strftime('%Y%m%d')}@legendarytaskmanager"
+                    description = f"Категория: {task['category']}\\nПриоритет: {task['priority']}"
+                    if task["tags"]:
+                        description += f"\\nТеги: {', '.join(task['tags'])}"
+                    if task["repeat"]:
+                        description += f"\\nПовтор: {task['repeat']}"
+                    if task["subtasks"]:
+                        subtask_list = "\\nПодзадачи:\\n" + "\\n".join(f"- {'[x]' if st['done'] else '[ ]'} {st['text']}" for st in task["subtasks"])
+                        description += subtask_list
+                    
+                    ics_content.extend([
+                        "BEGIN:VEVENT",
+                        f"UID:{uid}",
+                        f"DTSTAMP:{datetime.now().strftime('%Y%m%dT%H%M%SZ')}",
+                        f"DTSTART;VALUE=DATE:{deadline.strftime('%Y%m%d')}",
+                        f"DTEND;VALUE=DATE:{deadline.strftime('%Y%m%d')}",
+                        f"SUMMARY:{task['text']}",
+                        f"DESCRIPTION:{description}",
+                        "STATUS:CONFIRMED",
+                        "END:VEVENT"
+                    ])
+                except ValueError:
+                    logging.error(f"Неверный формат даты для задачи: {task['text']}")
+        
+        ics_content.append("END:VCALENDAR")
+        
+        with open("tasks.ics", "w", encoding="utf-8") as f:
+            f.write("\n".join(ics_content))
+        print("Задачи экспортированы в tasks.ics")
+
     def show_notifications(self):
         """Показывает уведомления о срочных и просроченных задачах."""
         urgent = [t for t in self.tasks if self.is_urgent(t["deadline"]) and not t["done"]]
@@ -512,9 +554,10 @@ def main():
         print("17. Показать статистику")
         print("18. Экспортировать в JSON")
         print("19. Импортировать из JSON")
-        print("20. Выйти")
+        print("20. Экспортировать в iCalendar")
+        print("21. Выйти")
         
-        choice = input("Твой выбор (1-20): ").strip()
+        choice = input("Твой выбор (1-21): ").strip()
         
         if choice == "1":
             manager.show_tasks()
@@ -555,6 +598,8 @@ def main():
         elif choice == "19":
             manager.import_from_json()
         elif choice == "20":
+            manager.export_to_ics()
+        elif choice == "21":
             print("Пока! Все задачи сохранены.")
             break
         else:
