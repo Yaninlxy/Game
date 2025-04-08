@@ -21,15 +21,14 @@ ARCHIVE_FILENAME = "archive.txt"
 def load_config():
     """Загружает конфигурацию из config.ini."""
     config = ConfigParser()
-    config["DEFAULT"] = {}  # Инициализируем пустой раздел DEFAULT
-    config.set("DEFAULT", "date_format", "%Y-%m-%d")  # Устанавливаем значение через set()
+    config["DEFAULT"] = {}  # Пустой раздел по умолчанию
+    config.set("DEFAULT", "date_format", "%Y-%m-%d")  # Устанавливаем через set()
     if os.path.exists(CONFIG_FILE):
         config.read(CONFIG_FILE, encoding="utf-8")
     return config
 
 CONFIG = load_config()
 DATE_FORMAT = CONFIG["DEFAULT"]["date_format"]
-
 
 class TaskManager:
     """Класс для управления задачами с поддержкой категорий, приоритетов, дедлайнов, тегов, подзадач и повторений."""
